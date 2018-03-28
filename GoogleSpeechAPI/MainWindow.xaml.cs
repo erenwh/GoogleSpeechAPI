@@ -93,9 +93,10 @@ namespace GoogleSpeechAPI
 		private void btnSave_Click(object sender, RoutedEventArgs e)
 		{
 			waveIn.StopRecording();
-
+			
 			if (File.Exists("audio.raw"))
 				File.Delete("audio.raw");
+
 
 			writer = new WaveFileWriter(output, waveIn.WaveFormat);
 
@@ -122,6 +123,7 @@ namespace GoogleSpeechAPI
 			waveOut.Init(reader);
 			waveOut.PlaybackStopped += new EventHandler<StoppedEventArgs>(waveOut_PlaybackStopped);
 			waveOut.Play();
+			
 		}
 
 		private void btnSpeechInfo_Click(object sender, RoutedEventArgs e)
@@ -130,7 +132,30 @@ namespace GoogleSpeechAPI
 			btnSave.IsEnabled = false;
 			btnSpeechInfo.IsEnabled = false;
 
-			if (File.Exists("audio.raw"))
+
+			var speech = SpeechClient.Create();
+			var response = speech.Recognize(new RecognitionConfig()
+			{
+				Encoding = RecognitionConfig.Types.AudioEncoding.Linear16,
+				SampleRateHertz = 16000,
+				LanguageCode = "en",
+			}, RecognitionAudio.FromFile("audio.raw"));
+
+
+			textBox1.Text = "";
+
+			foreach (var result in response.Results)
+			{
+				foreach (var alternative in result.Alternatives)
+				{
+					textBox1.Text = textBox1.Text + " " + alternative.Transcript;
+				}
+			}
+
+			if (textBox1.Text.Length == 0)
+				textBox1.Text = "No Data ";
+
+			/*if (File.Exists("audio.raw"))
 			{
 
 				var speech = SpeechClient.Create();
@@ -162,7 +187,7 @@ namespace GoogleSpeechAPI
 				textBox1.Text = "Audio File Missing ";
 
 			}
-
+			*/
 		}
 
 		private void btnPlayAudio_Click(object sender, RoutedEventArgs e)
